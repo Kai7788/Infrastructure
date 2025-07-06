@@ -45,6 +45,15 @@ services:
     dns: 192.168.178.150
     dns_search: fritz.box
 
+  yt_converter:
+    build: ./converter
+    container_name: yt_converter
+    networks:
+      - proxy_net
+    restart: unless-stopped
+    volumes:
+      - ./converter/tmp:/app/tmp
+
   nginx:
     image: nginx:alpine
     container_name: nginx_proxy
@@ -54,6 +63,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./certs:/etc/nginx/certs  # For future SSL
+      - ./frontend:/usr/share/nginx/html
 
     networks:
       - proxy_net
