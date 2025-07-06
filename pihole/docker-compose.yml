@@ -1,0 +1,65 @@
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+version: "3.7" # Explicitly specify the Compose file version
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      # DNS Ports
+      - "53:53/tcp"
+      - "53:53/udp"
+      # Default HTTP Port
+      # - "80:80/tcp"
+      # Default HTTPS Port. FTL will generate a self-signed certificate
+      # - "443:443/tcp"
+      # Uncomment if using Pi-hole as your DHCP server
+      #- "67:67/udp"
+      # Uncomment if using Pi-hole as your NTP server
+      #- "123:123/udp"
+      # DNS-over-TLS Ports
+      - "853:853/tcp"
+      - "853:853/udp"
+    environment:
+      # Set the appropriate timezone for your location from:
+      # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      TZ: 'Europe/Berlin'
+
+      # Password to access the web interface
+      WEBPASSWORD: 'pihole'
+
+      # Optional: DNS listening mode. 'all' for Docker's bridge network
+      FTLCONF_dns_listeningMode: 'all'
+
+      # Optional: Specify upstream DNS servers (Cloudflare and Google as examples)
+      PIHOLE_DNS_: '1.1.1.1;8.8.8.8'
+
+      VIRTUAL_HOST: pihole.raspberry
+      VIRTUAL_PORT: 80
+
+    volumes:
+      # Persist Pi-hole's databases and configuration
+      - './etc-pihole:/etc/pihole'
+      # Uncomment if migrating custom dnsmasq configuration
+      #- './etc-dnsmasq.d:/etc/dnsmasq.d'
+
+    cap_add:
+      # Required for DHCP server
+      - NET_ADMIN
+      # Required for NTP server (optional)
+      #- SYS_TIME
+      # Optional, for prioritized processing
+      #- SYS_NICE
+
+    restart: unless-stopped
+
+    dns:
+      # Specify external DNS servers for the container itself
+      - 1.1.1.1
+      - 8.8.8.8
+    networks:
+      - proxy_net
+
+networks:
+  proxy_net:
+    external: true
