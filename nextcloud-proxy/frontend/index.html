@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube zu MP3 Konverter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-music"></i>
+        </div>
+        <h1>YouTube zu MP3</h1>
+        <p class="subtitle">Konvertiere YouTube-Videos zu high-quality MP3 Datein</p>
+        
+        <form id="converter-form">
+            <div class="input-group">
+                <input type="url" id="youtube-url" 
+                       placeholder="https://www.youtube.com/watch?v=..." required>
+            </div>
+            <button type="submit" id="convert-btn">
+                <i class="fas fa-bolt"></i> Konvertiere zu MP3
+            </button>
+        </form>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div id="status">Youtube URL eingeben zum Konvertieren</div>
+        
+        <p class="footer">
+            <i class="fas fa-info-circle"></i> MP3 Datein werden nach Download automatisch gelöscht.
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('converter-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('youtube-url').value;
+            const status = document.getElementById('status');
+            const progressContainer = document.querySelector('.progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const convertBtn = document.getElementById('convert-btn');
+            
+            // Reset UI
+            status.textContent = 'Processing...';
+            status.className = 'processing';
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            convertBtn.disabled = true;
+            
+            // Simulate progress (real progress would come from server events)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 5;
+                progressBar.style.width = `${Math.min(progress, 90)}%`;
+            }, 500);
+            
+            try {
+                const formData = new FormData();
+                formData.append('url', url);
+                
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error);
+                }
+                
+                // Create download link
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'converted.mp3';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                
+                status.textContent = 'Download fertig! Die Datei ist auf dem Weg.';
+                status.className = 'success';
+                
+                // Reset after success
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    convertBtn.disabled = false;
+                    document.getElementById('youtube-url').value = '';
+                }, 3000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                status.textContent = `Error: ${error.message}`;
+                status.className = 'error';
+                progressContainer.style.display = 'none';
+                convertBtn.disabled = false;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
