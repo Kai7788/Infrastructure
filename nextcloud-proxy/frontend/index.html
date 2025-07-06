@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube zu MP3 Konverter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
@@ -13,7 +13,7 @@
             <i class="fas fa-music"></i>
         </div>
         <h1>YouTube zu MP3</h1>
-        <p class="subtitle">Konvertiere YouTube-Videos zu high-quality MP3 Datein</p>
+        <p class="subtitle">Konvertiere YouTube-Videos in hochwertige MP3-Dateien</p>
         
         <form id="converter-form">
             <div class="input-group">
@@ -21,7 +21,7 @@
                        placeholder="https://www.youtube.com/watch?v=..." required>
             </div>
             <button type="submit" id="convert-btn">
-                <i class="fas fa-bolt"></i> Konvertiere zu MP3
+                <i class="fas fa-bolt"></i> Zu MP3 konvertieren
             </button>
         </form>
         
@@ -29,10 +29,10 @@
             <div class="progress-bar" id="progress-bar"></div>
         </div>
         
-        <div id="status">Youtube URL eingeben zum Konvertieren</div>
+        <div id="status">Gib eine YouTube-URL ein, um mit der Konvertierung zu beginnen</div>
         
         <p class="footer">
-            <i class="fas fa-info-circle"></i> MP3 Datein werden nach Download automatisch gelöscht.
+            <i class="fas fa-info-circle"></i> MP3-Dateien werden bei Bedarf erstellt und nach dem Download sofort gelöscht
         </p>
     </div>
 
@@ -45,14 +45,14 @@
             const progressBar = document.getElementById('progress-bar');
             const convertBtn = document.getElementById('convert-btn');
             
-            // Reset UI
-            status.textContent = 'Processing...';
+            // UI zurücksetzen
+            status.textContent = 'Wird verarbeitet...';
             status.className = 'processing';
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
             convertBtn.disabled = true;
             
-            // Simulate progress (real progress would come from server events)
+            // Fortschritt simulieren
             let progress = 0;
             const progressInterval = setInterval(() => {
                 progress += Math.random() * 5;
@@ -76,29 +76,40 @@
                     throw new Error(error);
                 }
                 
-                // Create download link
+                // Dateinamen aus Header extrahieren
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'konvertiert.mp3';
+                
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="(.+)"/);
+                    if (match && match[1]) {
+                        filename = match[1];
+                    }
+                }
+                
+                // Download-Link erstellen
                 const blob = await response.blob();
                 const downloadUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = downloadUrl;
-                a.download = 'converted.mp3';
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
                 
-                status.textContent = 'Download fertig! Die Datei ist auf dem Weg.';
+                status.textContent = `Download abgeschlossen: ${filename}`;
                 status.className = 'success';
                 
-                // Reset after success
+                // Nach Erfolg zurücksetzen
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     convertBtn.disabled = false;
                     document.getElementById('youtube-url').value = '';
-                }, 3000);
+                }, 5000);
                 
             } catch (error) {
                 clearInterval(progressInterval);
-                status.textContent = `Error: ${error.message}`;
+                status.textContent = `Fehler: ${error.message}`;
                 status.className = 'error';
                 progressContainer.style.display = 'none';
                 convertBtn.disabled = false;
