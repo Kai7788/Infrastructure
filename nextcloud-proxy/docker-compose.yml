@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  nextcloud_redis:
+    image: redis:alpine
+    container_name: nextcloud_redis
+    networks:
+      - proxy_net
+    restart: unless-stopped
+
+  nextcloud_db:
+    image: mariadb:10.6
+    container_name: nextcloud_db
+    environment:
+      MYSQL_ROOT_PASSWORD: nextcloud
+      MYSQL_PASSWORD: nextcloud
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextcloud
+    volumes:
+      - /mnt/nextcloud_data/db:/var/lib/mysql
+    networks:
+      - proxy_net
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    environment:
+      - PUID=33
+      - PGID=33
+      - TZ=Europe/Berlin
+      - MYSQL_HOST=nextcloud_db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+      - REDIS_HOST=nextcloud_redis
+    volumes:
+      - /mnt/nextcloud_data:/data
+    networks:
+      - proxy_net
+    depends_on:
+      - nextcloud_db
+    restart: unless-stopped
+    dns: 192.168.178.150
+    dns_search: fritz.box
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs  # For future SSL
+
+    networks:
+      - proxy_net
+    restart: unless-stopped
+
+networks:
+  proxy_net:
+    name: proxy_net
+    driver: bridge
