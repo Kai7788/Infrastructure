@@ -1,3 +1,4 @@
+/* style.css */
 :root {
     --primary: #ff4b4b;
     --primary-dark: #e04444;
@@ -98,6 +99,37 @@ input::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
 
+.format-selector {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.format-option {
+    flex: 1;
+}
+
+.format-option input[type="radio"] {
+    display: none;
+}
+
+.format-option label {
+    display: block;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-weight: 500;
+}
+
+.format-option input[type="radio"]:checked + label {
+    background: var(--primary);
+    box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3);
+}
+
 button {
     background: var(--primary);
     color: white;
@@ -188,5 +220,10 @@ button:disabled {
     
     h1 {
         font-size: 1.8rem;
+    }
+    
+    .format-selector {
+        flex-direction: column;
+        gap: 10px;
     }
 }
